@@ -22,8 +22,9 @@ int main () {
     }
 
     clock_t start = clock();
-    uint64_t nodes = search(board, 4);
+    Value score = search(board, 4, -INT32_MAX, INT32_MAX);
     clock_t end = clock();
+    std::cout << score << std::endl;
     std::cout << nodes << std::endl;
     std::cout << nodes * CLOCKS_PER_SEC / (end - start) << std::endl;
 

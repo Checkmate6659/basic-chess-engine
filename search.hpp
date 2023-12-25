@@ -7,7 +7,9 @@
 #include "eval.hpp"
 using namespace chess;
 
-uint64_t search(Board &board, int depth);
+extern uint64_t nodes;
+
+Value search(Board &board, int depth, Value alpha, Value beta);
 
 
 #endif

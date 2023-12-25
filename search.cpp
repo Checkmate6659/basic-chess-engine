@@ -1,26 +1,38 @@
 #include "search.hpp"
+#include "eval.hpp"
 
-uint64_t search(Board& board, int depth) {
+
+uint64_t nodes = 0;
+
+Value search(Board& board, int depth, Value alpha, Value beta) {
+    if (depth == 0)
+    {
+        nodes++;
+        return eval(board);
+    }
+
     Movelist moves;
     movegen::legalmoves(moves, board);
 
-    // if (depth == 1) { //>210Mnps with bulk counting
-    //     return moves.size();
-    // }
-    if (depth == 0) { //with this, it drops to 8Mnps
-        //eval(board); //drops to 4Mnps (TODO: optimize PSQT calculation)
-        return 1;
-    }
-
-    uint64_t nodes = 0;
+    if (moves.size() == 0) //no legal moves
+        return -INT32_MAX * board.inCheck(); //return checkmate or stalemate accordingly
 
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
+
         board.makeMove(move);
-        nodes += search(board, depth - 1);
+        Value cur_score = -search(board, depth - 1, -beta, -alpha);
         board.unmakeMove(move);
+
+        if (cur_score > alpha)
+        {
+            alpha = cur_score;
+
+            if (cur_score > beta) //beta cutoff (fail soft)
+                return cur_score;
+        }
     }
 
-    return nodes;
+    return alpha;
 }
 
