@@ -2,38 +2,16 @@
 #include <time.h>
 
 #include "chess.hpp"
+#include "search.hpp"
 #include "eval.hpp"
-
 using namespace chess;
 
-uint64_t perft(Board& board, int depth) {
-    Movelist moves;
-    movegen::legalmoves(moves, board);
-
-    // if (depth == 1) { //>210Mnps with bulk counting
-    //     return moves.size();
-    // }
-    if (depth == 0) { //with this, it drops to 8Mnps
-        //eval(board); //drops to 4Mnps (TODO: optimize PSQT calculation)
-        return 1;
-    }
-
-    uint64_t nodes = 0;
-
-    for (int i = 0; i < moves.size(); i++) {
-        const auto move = moves[i];
-        board.makeMove(move);
-        nodes += perft(board, depth - 1);
-        board.unmakeMove(move);
-    }
-
-    return nodes;
-}
-
 int main () {
-    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
     init_tables();
+
+    //Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Board board = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+
     std::cout << eval(board) << std::endl;
 
     Movelist moves;
@@ -44,7 +22,7 @@ int main () {
     }
 
     clock_t start = clock();
-    uint64_t nodes = perft(board, 5);
+    uint64_t nodes = search(board, 4);
     clock_t end = clock();
     std::cout << nodes << std::endl;
     std::cout << nodes * CLOCKS_PER_SEC / (end - start) << std::endl;

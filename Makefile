@@ -1,3 +1,6 @@
 all:
-	g++ -std=c++17 -O3 -flto -DNDEBUG -march=native *.cpp
+	#g++ -std=c++17 -O3 -Ofast -flto -DNDEBUG -march=native *.cpp
+	g++ -std=c++17 -O3 -Ofast -flto -s -DNDEBUG -march=native *.cpp
 	#g++ -std=c++17 -O3 -flto -march=native *.cpp
+
+#g++ -std=c++17 -O3 -Ofast -flto -DNDEBUG -march=native -c chess.hpp -o chess-library.o

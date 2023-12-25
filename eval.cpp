@@ -174,16 +174,16 @@ void init_tables()
     }
 }
 
-int eval(Board board)
+Value eval(Board board)
 {
-    int mg = 0, eg = 0;
-    int mgPhase = 0;
+    Value mg = 0, eg = 0;
+    uint8_t mgPhase = 0;
 
     //evaluate each piece (inefficient)
-    for (int sq = 0; sq < 64; ++sq) {
-        int pc = (int)board.at<Piece>(sq);
+    for (uint8_t sq = 0; sq < 64; ++sq) {
+        uint8_t pc = (int)board.at<Piece>(sq);
         if (pc != (int)Piece::NONE) {
-            int perspective = (pc >= 6) ? -1 : 1; //-1 if black, 1 if white
+            int8_t perspective = (pc >= 6) ? -1 : 1; //-1 if black, 1 if white
             mg += mg_table[pc][sq] * perspective;
             eg += eg_table[pc][sq] * perspective;
             mgPhase += gamephaseInc[pc];
@@ -199,6 +199,6 @@ int eval(Board board)
 
     //tapered eval
     if (mgPhase > 24) mgPhase = 24; /* in case of early promotion */
-    int egPhase = 24 - mgPhase;
+    uint8_t egPhase = 24 - mgPhase;
     return (mg * mgPhase + eg * egPhase) / 24;
 }
