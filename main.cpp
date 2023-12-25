@@ -11,6 +11,12 @@ int main () {
 
     //Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     Board board = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+    std::cout << board.isRepetition(1); //count==1 => 2fold repetition
+    board.makeMove(uci::uciToMove(board, "f3e3"));
+    board.makeMove(uci::uciToMove(board, "e7f8"));
+    board.makeMove(uci::uciToMove(board, "e3f3"));
+    board.makeMove(uci::uciToMove(board, "f8e7"));
+    std::cout << board.isRepetition(1) << std::endl;
 
     std::cout << eval(board) << std::endl;
 
