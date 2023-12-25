@@ -1,3 +1,8 @@
+# VScodium JSONs
+c_cpp_properties.json
+launch.json
+settings.json
+
 # Prerequisites
 *.d
 
