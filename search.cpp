@@ -74,8 +74,9 @@ Move search_root(Board &board, unsigned alloc_time_ms, int depth)
         for (int i = 0; i < moves.size(); i++) {
             const auto move = moves[i];
 
+            nodes++;
             board.makeMove(move);
-            Value cur_score = -search(board, cur_depth, -INT32_MAX, INT32_MAX);
+            Value cur_score = -search(board, cur_depth - 1, -INT32_MAX, INT32_MAX);
             board.unmakeMove(move);
 
             if (cur_score > best_score) //new best move
