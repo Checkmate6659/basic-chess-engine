@@ -11,6 +11,8 @@ using namespace chess;
 
 #define ENGINE_NAME "BasicChessEngine v1.0"
 
+#define EXTRA_DELAY 10 //time to account for communication and panic delay (in ms)
+
 int main ()
 {
     init_tables();
@@ -130,7 +132,8 @@ int main ()
             }
             unsigned alloc_time = movetime ? //time management (all in milliseconds)
                 movetime :
-                (engtime / movestogo + enginc);
+                (engtime / movestogo + enginc)
+            - COMMS_DELAY; //account for communication delays
             //pass it on to this function in search.cpp
             Move best_move = search_root(board, alloc_time, depth);
             //print best move

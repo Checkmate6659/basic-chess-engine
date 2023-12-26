@@ -52,8 +52,9 @@ Value quiesce(Board &board, Value alpha, Value beta)
 
 Value search(Board& board, int depth, Value alpha, Value beta)
 {
-    if (panic || !(nodes & 0x3FF)) //check for panic
-        if (panic || clock() > search_end_time || kbhit())
+    if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
+        if (panic || clock() > search_end_time ||
+        (!(nodes & 0xFFFF) && kbhit())) //make costly key check extra rare
         {
             panic = true;
             //using this special value to (hopefully) allow for better partial search results
