@@ -27,7 +27,9 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     movegen::legalmoves(moves, board);
 
     if (moves.size() == 0) //no legal moves
-        return -INT32_MAX * board.inCheck(); //return checkmate or stalemate accordingly
+        return board.inCheck() ? -INT32_MAX : DRAW; //return checkmate or stalemate
+    if (board.isRepetition(1) || board.isHalfMoveDraw())
+        return DRAW;
 
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];

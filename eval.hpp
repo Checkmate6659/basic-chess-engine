@@ -7,7 +7,6 @@
 using namespace chess;
 
 typedef int32_t Value;
-#define PANIC_VALUE INT32_MIN
 
 void init_tables();
 Value eval(Board board);
