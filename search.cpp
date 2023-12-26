@@ -5,6 +5,7 @@
 #include "eval.hpp"
 #include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
+#include "tt.hpp"
 
 uint64_t nodes = 0;
 clock_t search_end_time;
@@ -62,6 +63,15 @@ Value search(Board& board, int depth, Value alpha, Value beta)
             //however we should be careful when adding/subtracting from scores
         }
 
+    //probe hash table
+    Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
+    Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
+    //if (tt_val != INT32_MIN)
+    //    return tt_val;
+
+    //final hash flag to store position at
+    uint8_t hashf = hashfALPHA;
+
     if (depth == 0)
         return quiesce(board, alpha, beta);
 
@@ -73,6 +83,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     if (board.isRepetition(1) || board.isHalfMoveDraw())
         return DRAW;
 
+    Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
     score_moves(board, moves, 0, killers[depth]); //TODO: when implementing TT, put the move HERE!
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
@@ -86,6 +97,8 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         if (cur_score > alpha)
         {
             alpha = cur_score;
+            best_move = move;
+            hashf = hashfEXACT; //we have an exact score (unless beta cutoff)
 
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
@@ -96,11 +109,15 @@ Value search(Board& board, int depth, Value alpha, Value beta)
                     killers[depth][1] = killers[depth][0];
                     killers[depth][0] = move;
                 }
+
+                //store in hash table (beta = lower bound flag) TODO: fail soft
+                RecordHash(board, depth, beta, hashfBETA, move);
                 return cur_score;
             }
         }
     }
 
+    RecordHash(board, depth, beta, hashf, best_move);
     return alpha;
 }
 
