@@ -59,9 +59,9 @@ void RecordHash(Board &board, uint8_t depth, int32_t val, uint8_t flags, const M
 
     phashe->key = curhash;
     phashe->best = best_move.move();
+    phashe->val = val;
     phashe->flags = flags;
     phashe->depth = depth;
-    phashe->val = val;
 }
 
 #endif

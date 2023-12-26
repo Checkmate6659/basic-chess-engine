@@ -72,9 +72,10 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
     //probe hash table (HUUUUUUUUUGE bug in TT!)
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
-    Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
+    // Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
     // if (tt_val != INT32_MIN)
     //     return tt_val;
+    // if (tt_move != Move::NO_MOVE) std::cout << "WTF?\n";
 
     //final hash flag to store position at
     uint8_t hashf = hashfALPHA;
@@ -122,13 +123,13 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
                 //store in hash table (beta = lower bound flag)
                 //why does fail soft give really bad results?
-                RecordHash(board, depth, beta, hashfBETA, Move::NO_MOVE); //no move is stored! (before it was storing the current move)
+                RecordHash(board, depth, beta, hashfBETA, move);
                 return cur_score; //fail soft here: no effect!
             }
         }
     }
 
-    RecordHash(board, depth, alpha, hashf, Move::NO_MOVE); //was storing best_move
+    RecordHash(board, depth, alpha, hashf, best_move);
     return alpha;
 }
 
