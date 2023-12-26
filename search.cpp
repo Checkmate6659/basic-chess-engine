@@ -13,14 +13,12 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-
-/* void hash_unit_test(Board &board)
+//clear hash table AND killers
+void clear_hash()
 {
+    for (int i = 0; i < MAX_DEPTH; i++) killers[i][0] = killers[i][1] = Move::NO_MOVE;
     for (int i = 0; i < HASH_SIZE; i++) hash_table[i] = {};
-    search_root(board, 1000, 5);
-    search_root(board, 1000, 1);
 }
- */
 
 Value quiesce(Board &board, Value alpha, Value beta)
 {
@@ -72,11 +70,11 @@ Value search(Board& board, int depth, Value alpha, Value beta)
             //however we should be careful when adding/subtracting from scores
         }
 
-    //probe hash table
+    //probe hash table (HUUUUUUUUUGE bug in TT!)
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
     Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
-    //if (tt_val != INT32_MIN)
-    //   return tt_val;
+    // if (tt_val != INT32_MIN)
+    //     return tt_val;
 
     //final hash flag to store position at
     uint8_t hashf = hashfALPHA;
@@ -86,14 +84,17 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
     Movelist moves;
     movegen::legalmoves(moves, board);
+    //if (tt_move.move() && moves.find(tt_move) == -1) std::cout << "RED ALERT\n";
 
     if (moves.size() == 0) //no legal moves
         return board.inCheck() ? (board.fullMoveNumber() - INT32_MAX) : DRAW; //return checkmate or stalemate
     if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
-    Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
+    //score moves
     score_moves(board, moves, tt_move, killers[depth]); //TODO: when implementing TT, put the move HERE!
+
+    Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
@@ -121,13 +122,13 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
                 //store in hash table (beta = lower bound flag)
                 //why does fail soft give really bad results?
-                RecordHash(board, depth, beta, hashfBETA, move);
+                RecordHash(board, depth, beta, hashfBETA, Move::NO_MOVE); //no move is stored! (before it was storing the current move)
                 return cur_score; //fail soft here: no effect!
             }
         }
     }
 
-    RecordHash(board, depth, alpha, hashf, best_move);
+    RecordHash(board, depth, alpha, hashf, Move::NO_MOVE); //was storing best_move
     return alpha;
 }
 
@@ -136,6 +137,8 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     //convert from ms to clock ticks; set this up for panic return
     clock_t start_time = clock();
     search_end_time = start_time + alloc_time_ms * CLOCKS_PER_SEC / 1000;
+
+    clear_hash(); //TEMPORARY! i want persistent TT in the end!
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag

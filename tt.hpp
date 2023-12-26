@@ -29,7 +29,10 @@ int32_t ProbeHash(Board &board, uint8_t depth, int32_t alpha, int32_t beta, Move
     HASHE* phashe = &hash_table[curhash % HASH_SIZE];
 
     if (phashe->key == curhash) { //TT hit
+//std::cout << phashe->key << std::endl;
         if (phashe->depth >= depth) {
+// std::cout << (int)phashe->depth << " " << (int)depth << std::endl;
+            //there is a bug somewhere here!!! (or in the other function, or the usage)
             if (phashe->flags == hashfEXACT)
                 return phashe->val;
             if ((phashe->flags == hashfALPHA) && //TODO: window resizing!
@@ -48,14 +51,17 @@ int32_t ProbeHash(Board &board, uint8_t depth, int32_t alpha, int32_t beta, Move
 //extremely basic always replace scheme (doesn't even check if it was the same node previously)
 void RecordHash(Board &board, uint8_t depth, int32_t val, uint8_t flags, const Move &best_move)
 {
+    //unimportant if not doing persistent hash table; but needed when i will do that
+    if (val == INT32_MIN) return; //don't store panic bogus in TT!
+
     U64 curhash = board.hash();
-    HASHE * phashe = &hash_table[curhash % HASH_SIZE];
+    HASHE* phashe = &hash_table[curhash % HASH_SIZE];
 
     phashe->key = curhash;
     phashe->best = best_move.move();
-    phashe->val = val;
     phashe->flags = flags;
     phashe->depth = depth;
+    phashe->val = val;
 }
 
 #endif
