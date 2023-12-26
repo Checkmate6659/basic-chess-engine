@@ -12,6 +12,44 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
+
+Value quiesce(Board &board, Value alpha, Value beta)
+{
+    //stand pat
+    Value static_eval = eval(board);
+    if (static_eval > alpha)
+    {
+        alpha = static_eval;
+        if (alpha >= beta) return alpha;
+    }
+
+    Movelist moves;
+    //only generate captures
+    movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board);
+
+    score_moves_quiesce(board, moves);
+    for (int i = 0; i < moves.size(); i++) {
+        pick_move(moves, i); //get the best-scored move to the index i
+        const auto move = moves[i];
+
+        board.makeMove(move);
+        nodes++; //1 move made = 1 node
+        Value cur_score = -quiesce(board, -beta, -alpha);
+        board.unmakeMove(move);
+
+        if (cur_score > alpha)
+        {
+            alpha = cur_score;
+            if (cur_score >= beta) //beta cutoff (fail soft)
+            {
+                return cur_score;
+            }
+        }
+    }
+
+    return alpha;
+}
+
 Value search(Board& board, int depth, Value alpha, Value beta)
 {
     if (panic || !(nodes & 0x3FF)) //check for panic
@@ -24,7 +62,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         }
 
     if (depth == 0)
-        return eval(board);
+        return quiesce(board, alpha, beta);
 
     Movelist moves;
     movegen::legalmoves(moves, board);
@@ -48,7 +86,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         {
             alpha = cur_score;
 
-            if (cur_score > beta) //beta cutoff (fail soft)
+            if (cur_score >= beta) //beta cutoff (fail soft)
             {
                 //killer move update: quiet move; avoid duplicate killers
                 //(TODO: test if better or worse)

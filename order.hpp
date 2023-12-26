@@ -3,7 +3,7 @@
 #include <cstdint>
 using namespace chess;
 
-//#define KILLERS
+#define KILLERS
 
 //Give a score to all the moves (don't order them immediately!)
 inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move, Move* cur_killers)
@@ -15,6 +15,7 @@ inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move, Move* c
 
         if (board.isCapture(moves[i]))
         {
+            //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
             moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
@@ -30,6 +31,26 @@ inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move, Move* c
         }
 #endif
         else
+        {
+            moves[i].setScore(-32000);
+        }
+    }
+}
+
+//Same for qsearch
+inline void score_moves_quiesce(Board &board, Movelist &moves)
+{
+    for (int i = 0; i < moves.size(); i++) {
+        const auto move = moves[i];
+
+        if (board.isCapture(moves[i]))
+        {
+            //MVV-LVA
+            PieceType victim = board.at<PieceType>(moves[i].to());
+            PieceType aggressor = board.at<PieceType>(moves[i].from());
+            moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
+        }
+        else //could get rid of this; keeping it in for safety
         {
             moves[i].setScore(-32000);
         }
