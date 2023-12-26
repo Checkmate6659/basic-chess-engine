@@ -14,12 +14,13 @@ bool panic = false;
 Move killers[MAX_DEPTH][2];
 
 
-void hash_unit_test(Board &board)
+/* void hash_unit_test(Board &board)
 {
     for (int i = 0; i < HASH_SIZE; i++) hash_table[i] = {};
     search_root(board, 1000, 5);
     search_root(board, 1000, 1);
 }
+ */
 
 Value quiesce(Board &board, Value alpha, Value beta)
 {
@@ -87,7 +88,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
     if (moves.size() == 0) //no legal moves
         return board.inCheck() ? -INT32_MAX : DRAW; //return checkmate or stalemate
-    if (board.isRepetition(1) || board.isHalfMoveDraw())
+    if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
@@ -154,7 +155,13 @@ Move search_root(Board &board, unsigned alloc_time_ms, int depth)
 
             nodes++;
             board.makeMove(move);
-            Value cur_score = -search(board, cur_depth - 1, -INT32_MAX, INT32_MAX);
+
+            Value cur_score;
+            //check for draw in main loop as well (to avoid the bot just walking into a draw)
+            if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
+                cur_score = 0;
+            else cur_score = -search(board, cur_depth - 1, -INT32_MAX, INT32_MAX);
+
             board.unmakeMove(move);
 
             if (cur_score > best_score) //new best move
