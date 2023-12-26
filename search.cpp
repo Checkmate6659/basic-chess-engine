@@ -87,7 +87,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     movegen::legalmoves(moves, board);
 
     if (moves.size() == 0) //no legal moves
-        return board.inCheck() ? -INT32_MAX : DRAW; //return checkmate or stalemate
+        return board.inCheck() ? (board.fullMoveNumber() - INT32_MAX) : DRAW; //return checkmate or stalemate
     if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
