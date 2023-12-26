@@ -16,7 +16,8 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         {
             panic = true;
             //using this special value to (hopefully) allow for better partial search results
-            return INT32_MIN; //PANIC; this stays -infinity when taking opposite!
+            return PANIC_VALUE; //PANIC; this stays -infinity when taking opposite!
+            //however we should be careful when adding/subtracting from scores
         }
 
     if (depth == 0)
