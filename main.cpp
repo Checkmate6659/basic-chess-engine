@@ -11,7 +11,7 @@ using namespace chess;
 
 #define ENGINE_NAME "BasicChessEngine v1.0"
 
-#define EXTRA_DELAY 10 //time to account for communication and panic delay (in ms)
+#define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
 
 int main()
 {
