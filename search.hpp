@@ -10,7 +10,7 @@
 #include "eval.hpp"
 using namespace chess;
 
-#define PANIC_VALUE INT32_MIN
+#define PANIC_VALUE INT32_MAX
 #ifdef __NOISY_DRAW
 #define DRAW ((nodes & 3) - 1) //pseudo-random in [[-1, 2]]
 #else

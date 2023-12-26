@@ -65,14 +65,14 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         (!(nodes & 0xFFFF) && kbhit())) //make costly key check extra rare
         {
             panic = true;
-            //using this special value to (hopefully) allow for better partial search results
-            return PANIC_VALUE; //PANIC; this stays -infinity when taking opposite!
-            //however we should be careful when adding/subtracting from scores
+            return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
         }
 
     //probe hash table (HUUUUUUUUUGE bug in TT!)
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
-    // Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
+    //Move garbo = Move::NO_MOVE; //tt miss => it will stay like this
+    // ProbeHash(board, depth, alpha, beta, garbo); //does nothing!
+    //Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move); //the TT move gets messed with
     // if (tt_val != INT32_MIN)
     //     return tt_val;
     // if (tt_move != Move::NO_MOVE) std::cout << "WTF?\n";
@@ -88,7 +88,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     //if (tt_move.move() && moves.find(tt_move) == -1) std::cout << "RED ALERT\n";
 
     if (moves.size() == 0) //no legal moves
-        return board.inCheck() ? (board.fullMoveNumber() - INT32_MAX) : DRAW; //return checkmate or stalemate
+        return board.inCheck() ? (board.fullMoveNumber() + 1 - INT32_MAX) : DRAW; //return checkmate or stalemate
     if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
@@ -104,6 +104,9 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         nodes++; //1 move made = 1 node
         Value cur_score = -search(board, depth - 1, -beta, -alpha);
         board.unmakeMove(move);
+
+        //score checks probably useless!
+        if (panic || cur_score == PANIC_VALUE || cur_score == -PANIC_VALUE) return PANIC_VALUE;
 
         if (cur_score > alpha)
         {
@@ -153,7 +156,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     while (++cur_depth <= depth && !panic)
     {
         //iterate over all legal moves, try find the best one
-        Value best_score = INT32_MIN; //lower than EVERYTHING (even than value of -infinity)
+        Value best_score = -INT32_MAX; //lower than EVERYTHING (even than value of -infinity)
         Move cur_best_move = best_move;
         for (int i = 0; i < moves.size(); i++) {
             const auto move = moves[i];
@@ -165,7 +168,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             //check for draw in main loop as well (to avoid the bot just walking into a draw)
             if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
                 cur_score = 0;
-            else cur_score = -search(board, cur_depth - 1, -INT32_MAX, INT32_MAX);
+            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, INT32_MAX - 1);
 
             board.unmakeMove(move);
 
