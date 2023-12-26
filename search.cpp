@@ -58,7 +58,7 @@ Move search_root(Board &board, unsigned alloc_time_ms, int depth)
 
     Movelist moves;
     movegen::legalmoves(moves, board);
-    Move best_move = moves[0]; //PANIC move
+    Move best_move = moves[0]; //default move
 
     int8_t cur_depth = 0; //starting depth - 1 (may need to be increased)
 
