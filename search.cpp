@@ -174,12 +174,15 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
         //TODO: partial search results
         if (!panic) best_move = cur_best_move;
 
-        //print out all the juicy info (NOTE: on last iteration best score is bogus)
-        uint32_t curtime = (clock() - start_time) * 1000 / CLOCKS_PER_SEC;
-        std::cout << "info depth " << (int)cur_depth << " score cp " << best_score <<
-            " nodes " << nodes << " time " << curtime <<
-            " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
-        std::cout << uci::moveToUci(best_move) << std::endl; //for now only print the best move as PV
+        if (!panic) //fix bogus best_score (has to change with partial search results)
+        {
+            //print out all the juicy info
+            uint32_t curtime = (clock() - start_time) * 1000 / CLOCKS_PER_SEC;
+            std::cout << "info depth " << (int)cur_depth << " score cp " << best_score <<
+                " nodes " << nodes << " time " << curtime <<
+                " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
+            std::cout << uci::moveToUci(best_move) << std::endl; //for now only print the best move as PV
+        }
     }
 
     return best_move;
