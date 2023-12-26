@@ -3,8 +3,10 @@
 #include <cstdint>
 using namespace chess;
 
+//#define KILLERS
+
 //Give a score to all the moves (don't order them immediately!)
-inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move)
+inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move, Move* cur_killers)
 {
     //WARNING: move scores in chess-library are int16_t, so careful with 32-bit hist
     //Also it goes from -32768 to 32767; there are negative values!
@@ -15,8 +17,18 @@ inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move)
         {
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
-            moves[i].setScore(0x4000 + (int)victim * 16 - (int)aggressor);
+            moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
         }
+#ifdef KILLERS
+        else if (move == cur_killers[0])
+        {
+            moves[i].setScore(0x4001);
+        }
+        else if (move == cur_killers[1])
+        {
+            moves[i].setScore(0x4000);
+        }
+#endif
         else
         {
             moves[i].setScore(-32000);

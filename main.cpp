@@ -11,7 +11,8 @@ using namespace chess;
 
 #define ENGINE_NAME "BasicChessEngine v1.0"
 
-int main () {
+int main ()
+{
     init_tables();
 
     //Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");

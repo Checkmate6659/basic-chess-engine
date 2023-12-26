@@ -10,6 +10,8 @@ uint64_t nodes = 0;
 clock_t search_end_time;
 bool panic = false;
 
+Move killers[MAX_DEPTH][2];
+
 Value search(Board& board, int depth, Value alpha, Value beta)
 {
     if (panic || !(nodes & 0x3FF)) //check for panic
@@ -32,7 +34,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     if (board.isRepetition(1) || board.isHalfMoveDraw())
         return DRAW;
 
-    score_moves(board, moves, 0); //TODO: when implementing TT, put the move HERE!
+    score_moves(board, moves, 0, killers[depth]); //TODO: when implementing TT, put the move HERE!
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
@@ -47,7 +49,16 @@ Value search(Board& board, int depth, Value alpha, Value beta)
             alpha = cur_score;
 
             if (cur_score > beta) //beta cutoff (fail soft)
+            {
+                //killer move update: quiet move; avoid duplicate killers
+                //(TODO: test if better or worse)
+                if (!board.isCapture(move) && move != killers[depth][0])
+                {
+                    killers[depth][1] = killers[depth][0];
+                    killers[depth][0] = move;
+                }
                 return cur_score;
+            }
         }
     }
 
