@@ -84,7 +84,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         return DRAW;
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
-    score_moves(board, moves, 0, killers[depth]); //TODO: when implementing TT, put the move HERE!
+    score_moves(board, moves, tt_move, killers[depth]); //TODO: when implementing TT, put the move HERE!
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];

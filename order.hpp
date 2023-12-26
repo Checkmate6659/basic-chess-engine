@@ -8,14 +8,17 @@ using namespace chess;
 #define KILLERS
 
 //Give a score to all the moves (don't order them immediately!)
-inline void score_moves(Board &board, Movelist &moves, uint16_t tt_move, Move* cur_killers)
+inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_killers)
 {
     //WARNING: move scores in chess-library are int16_t, so careful with 32-bit hist
     //Also it goes from -32768 to 32767; there are negative values!
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
 
-        if (board.isCapture(moves[i]))
+        if (moves[i] == tt_move)
+            moves[i].setScore(0x7FFF); //highest score
+        //TODO: score promotions!
+        else if (board.isCapture(moves[i]))
         {
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
