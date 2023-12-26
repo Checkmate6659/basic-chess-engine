@@ -15,7 +15,8 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         if (panic || clock() > search_end_time || kbhit())
         {
             panic = true;
-            return INT32_MIN; //PANIC
+            //using this special value to (hopefully) allow for better partial search results
+            return INT32_MIN; //PANIC; this stays -infinity when taking opposite!
         }
 
     if (depth == 0)
