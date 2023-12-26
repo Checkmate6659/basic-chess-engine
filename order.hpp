@@ -1,3 +1,5 @@
+#ifndef ORDER_H
+#define ORDER_H
 #include "chess.hpp"
 #include <array>
 #include <cstdint>
@@ -79,3 +81,4 @@ inline void pick_move(Movelist &moves, int i)
     moves[i] = moves[best_index];
     moves[best_index] = moves_i;
 }
+#endif
