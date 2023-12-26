@@ -66,8 +66,8 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     //probe hash table
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
     Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move);
-    //if (tt_val != INT32_MIN)
-    //    return tt_val;
+    if (tt_val != INT32_MIN)
+       return tt_val;
 
     //final hash flag to store position at
     uint8_t hashf = hashfALPHA;
