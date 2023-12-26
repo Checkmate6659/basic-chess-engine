@@ -3,6 +3,7 @@
 #include "chess.hpp"
 #include "search.hpp"
 #include "eval.hpp"
+#include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
 
 uint64_t nodes = 0;
@@ -31,7 +32,9 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     if (board.isRepetition(1) || board.isHalfMoveDraw())
         return DRAW;
 
+    score_moves(board, moves, 0); //TODO: when implementing TT, put the move HERE!
     for (int i = 0; i < moves.size(); i++) {
+        pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
 
         board.makeMove(move);
