@@ -110,9 +110,10 @@ Value search(Board& board, int depth, Value alpha, Value beta)
                     killers[depth][0] = move;
                 }
 
-                //store in hash table (beta = lower bound flag) TODO: fail soft
+                //store in hash table (beta = lower bound flag)
+                //why does fail soft give really bad results?
                 RecordHash(board, depth, beta, hashfBETA, move);
-                return cur_score;
+                return cur_score; //fail soft here: no effect!
             }
         }
     }

@@ -34,7 +34,7 @@ int32_t ProbeHash(Board &board, uint8_t depth, int32_t alpha, int32_t beta, Move
                 return phashe->val;
             if ((phashe->flags == hashfALPHA) && //TODO: window resizing!
                 (phashe->val <= alpha))
-                return alpha; //TODO: fail soft
+                return alpha; //TODO: fail soft (right now it has no effect!)
             if ((phashe->flags == hashfBETA) &&
                 (phashe->val >= beta)) //same
                 return beta;
