@@ -16,8 +16,9 @@ using namespace chess;
 int main()
 {
     init_tables();
-
     Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    //hash_unit_test(board);
 
     //UCI loop
     while(true)

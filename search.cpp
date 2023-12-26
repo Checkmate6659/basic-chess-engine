@@ -14,6 +14,13 @@ bool panic = false;
 Move killers[MAX_DEPTH][2];
 
 
+void hash_unit_test(Board &board)
+{
+    for (int i = 0; i < HASH_SIZE; i++) hash_table[i] = {};
+    search_root(board, 1000, 5);
+    search_root(board, 1000, 1);
+}
+
 Value quiesce(Board &board, Value alpha, Value beta)
 {
     //stand pat
@@ -118,7 +125,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         }
     }
 
-    RecordHash(board, depth, beta, hashf, best_move);
+    RecordHash(board, depth, alpha, hashf, best_move);
     return alpha;
 }
 
