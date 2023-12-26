@@ -70,7 +70,7 @@ int main()
             case 'g': //go command
             char engine_color = (board.sideToMove() == Color::WHITE) ? 'w' : 'b';
             unsigned engtime = 0; //engine's think time
-            unsigned enginc = INT32_MAX; //engine's increment (massive)
+            unsigned enginc = 0; //engine's increment
             unsigned movestogo = 30; //default to 30
             unsigned depth = MAX_DEPTH; //default depth = max
             unsigned movetime = 0; //no set movetime = 0 (special value)
@@ -108,7 +108,7 @@ int main()
                 }
                 input_stream >> command;
             }
-            unsigned alloc_time = movetime ? //time management (all in milliseconds)
+            int alloc_time = movetime ? //time management (all in milliseconds)
                 movetime :
                 (engtime / movestogo + enginc)
             - EXTRA_DELAY; //account for communication delays

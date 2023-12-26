@@ -29,7 +29,8 @@ Value quiesce(Board &board, Value alpha, Value beta)
     if (static_eval > alpha)
     {
         alpha = static_eval;
-        if (alpha >= beta) return alpha;
+        if (alpha >= beta)
+            return alpha; //no effect of fail soft here
     }
 
     Movelist moves;
@@ -51,7 +52,7 @@ Value quiesce(Board &board, Value alpha, Value beta)
             alpha = cur_score;
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
-                return cur_score;
+                return cur_score; //no effect of fail soft here
             }
         }
     }
@@ -130,7 +131,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     return alpha;
 }
 
-Move search_root(Board &board, unsigned alloc_time_ms, int depth)
+Move search_root(Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
     clock_t start_time = clock();
