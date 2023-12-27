@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <ctime>
+#include <termios.h>
 #include "chess.hpp"
 #include "search.hpp"
 #include "eval.hpp"
@@ -68,20 +69,33 @@ Value search(Board& board, int depth, Value alpha, Value beta)
             return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
         }
 
-    //probe hash table (HUUUUUUUUUGE bug in TT!)
-    Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
-    //Move garbo = Move::NO_MOVE; //tt miss => it will stay like this
-    // ProbeHash(board, depth, alpha, beta, garbo); //does nothing!
-    //Value tt_val = ProbeHash(board, depth, alpha, beta, tt_move); //the TT move gets messed with
-    // if (tt_val != INT32_MIN)
-    //     return tt_val;
-    // if (tt_move != Move::NO_MOVE) std::cout << "WTF?\n";
-
-    //final hash flag to store position at
-    uint8_t hashf = hashfALPHA;
-
     if (depth == 0)
         return quiesce(board, alpha, beta);
+
+    //probe hash table
+    //https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/engine/search_bestmove.c
+    Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
+
+    HASHE* phashe = ProbeHash(board);
+    if (phashe != nullptr) //we have a hit
+    {
+        if (phashe->depth >= depth) { //entry has enough depth
+            if (phashe->flags == hashfEXACT) //exact hit! great
+                return phashe->val;
+            else if ((phashe->flags == hashfALPHA) && //window resizing!
+                (phashe->val < beta))
+                beta = phashe->val;
+            else if ((phashe->flags == hashfBETA) &&
+                (phashe->val > alpha)) //same
+                alpha = phashe->val;
+
+            if (alpha >= beta)
+                return alpha; //hit with a bound
+        } //phashe->depth >= depth
+
+        //this is executed even when we can't return from search immediately
+        tt_move = Move(phashe->best); //write best move out of there
+    }
 
     Movelist moves;
     movegen::legalmoves(moves, board);
@@ -105,14 +119,13 @@ Value search(Board& board, int depth, Value alpha, Value beta)
         Value cur_score = -search(board, depth - 1, -beta, -alpha);
         board.unmakeMove(move);
 
-        //score checks probably useless!
+        //score checks probably useless! (still, avoid storing PANIC_VALUE in TT!)
         if (panic || cur_score == PANIC_VALUE || cur_score == -PANIC_VALUE) return PANIC_VALUE;
 
         if (cur_score > alpha)
         {
             alpha = cur_score;
-            best_move = move;
-            hashf = hashfEXACT; //we have an exact score (unless beta cutoff)
+            best_move = move; //update best move
 
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
@@ -131,8 +144,11 @@ Value search(Board& board, int depth, Value alpha, Value beta)
             }
         }
     }
-
-    RecordHash(board, depth, alpha, hashf, best_move);
+    if (!panic && alpha != PANIC_VALUE && alpha != -PANIC_VALUE)
+    {
+        uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
+        RecordHash(board, depth, alpha, hashf, best_move);
+    }
     return alpha;
 }
 
