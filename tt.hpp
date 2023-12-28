@@ -20,8 +20,8 @@ typedef struct
     uint16_t best;
 } HASHE;
 
-#define HASH_SIZE (1<<24) //constant for now (TODO: make it an option!)
-HASHE hash_table[HASH_SIZE]; //big hash table!
+#define HASH_SIZE (1<<20) //constant for now (TODO: make it an option!)
+HASHE hash_table[HASH_SIZE]; //smaller hash table (I was using 2^24 before! that's 400MB!)
 
 //look at https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/tt/tt_probe.c
 HASHE* ProbeHash(Board &board)

@@ -79,7 +79,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     HASHE* phashe = ProbeHash(board);
     if (phashe != nullptr) //we have a hit
     {
-        if (phashe->depth >= depth) { //entry has enough depth
+        /* if (phashe->depth >= depth) { //entry has enough depth
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -91,7 +91,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
             if (alpha >= beta)
                 return alpha; //hit with a bound
-        } //phashe->depth >= depth
+        } //phashe->depth >= depth */
 
         //this is executed even when we can't return from search immediately
         tt_move = Move(phashe->best); //write best move out of there
@@ -158,7 +158,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     clock_t start_time = clock();
     search_end_time = start_time + alloc_time_ms * CLOCKS_PER_SEC / 1000;
 
-    clear_hash(); //TEMPORARY! i want persistent TT in the end!
+    //clear_hash(); //TEMPORARY! i want persistent TT in the end!
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag

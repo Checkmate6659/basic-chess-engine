@@ -20,6 +20,8 @@ using namespace chess;
 extern uint64_t nodes;
 #define MAX_DEPTH 127
 
+void clear_hash(); //WARNING: this costs a lot of time, as it clears the entire TT!
+
 Value quiesce(Board &board, Value alpha, Value beta);
 Value search(Board &board, int depth, Value alpha, Value beta);
 Move search_root(Board &board, int alloc_time_ms, int depth);
