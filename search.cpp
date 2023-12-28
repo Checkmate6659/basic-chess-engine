@@ -59,7 +59,7 @@ Value quiesce(Board &board, Value alpha, Value beta)
     return alpha;
 }
 
-Value search(Board& board, int depth, Value alpha, Value beta)
+Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
 {
     if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
         if (panic || clock() > search_end_time ||
@@ -79,7 +79,8 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     HASHE* phashe = ProbeHash(board);
     if (phashe != nullptr) //we have a hit
     {
-        /* if (phashe->depth >= depth) { //entry has enough depth
+        //entry has enough depth AND it's not mate
+        if (phashe->depth >= depth && abs(phashe->val) < 32000 && ss->ply > 1) {
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -91,7 +92,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
             if (alpha >= beta)
                 return alpha; //hit with a bound
-        } //phashe->depth >= depth */
+        } //phashe->depth >= depth
 
         //this is executed even when we can't return from search immediately
         tt_move = Move(phashe->best); //write best move out of there
@@ -102,7 +103,7 @@ Value search(Board& board, int depth, Value alpha, Value beta)
     //if (tt_move.move() && moves.find(tt_move) == -1) std::cout << "RED ALERT\n";
 
     if (moves.size() == 0) //no legal moves
-        return board.inCheck() ? (board.fullMoveNumber() + 1 - INT32_MAX) : DRAW; //return checkmate or stalemate
+        return board.inCheck() ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
     if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
@@ -116,7 +117,9 @@ Value search(Board& board, int depth, Value alpha, Value beta)
 
         board.makeMove(move);
         nodes++; //1 move made = 1 node
-        Value cur_score = -search(board, depth - 1, -beta, -alpha);
+        ss->ply++;
+        Value cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+        ss->ply--;
         board.unmakeMove(move);
 
         //score checks probably useless! (still, avoid storing PANIC_VALUE in TT!)
@@ -174,6 +177,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
         //iterate over all legal moves, try find the best one
         Value best_score = -INT32_MAX; //lower than EVERYTHING (even than value of -infinity)
         Move cur_best_move = best_move;
+        SearchStack ss = { 1 }; //dont inc and dec it every time in search_root's loop
         for (int i = 0; i < moves.size(); i++) {
             const auto move = moves[i];
 
@@ -184,7 +188,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             //check for draw in main loop as well (to avoid the bot just walking into a draw)
             if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
                 cur_score = 0;
-            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, INT32_MAX - 1);
+            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, INT32_MAX - 1, &ss);
 
             board.unmakeMove(move);
 
