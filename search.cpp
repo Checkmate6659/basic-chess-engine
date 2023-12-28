@@ -72,15 +72,19 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     if (depth == 0)
         return quiesce(board, alpha, beta);
 
+    //check repetition BEFORE probing (no worry about priority for repetition!!!)
+    if (board.isRepetition(1))
+        return DRAW;
+
     //probe hash table
     //https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/engine/search_bestmove.c
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
 
-    HASHE* phashe = ProbeHash(board);
+    HASHE* phashe = ProbeHash(board, ss->ply);
     if (phashe != nullptr) //we have a hit
     {
-        //entry has enough depth AND it's not mate
-        if (phashe->depth >= depth && abs(phashe->val) < 32000 && ss->ply > 1) {
+        //entry has enough depth
+        if (phashe->depth >= depth && ss->ply > 1) {
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -104,7 +108,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
 
     if (moves.size() == 0) //no legal moves
         return board.inCheck() ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
-    if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
+    if (board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
     //score moves
@@ -142,7 +146,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
 
                 //store in hash table (beta = lower bound flag)
                 //why does fail soft give really bad results?
-                RecordHash(board, depth, beta, hashfBETA, move);
+                RecordHash(board, depth, beta, hashfBETA, move, ss->ply);
                 return cur_score; //fail soft here: no effect!
             }
         }
@@ -150,7 +154,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     if (!panic && alpha != PANIC_VALUE && alpha != -PANIC_VALUE)
     {
         uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
-        RecordHash(board, depth, alpha, hashf, best_move);
+        RecordHash(board, depth, alpha, hashf, best_move, ss->ply);
     }
     return alpha;
 }
