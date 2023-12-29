@@ -18,7 +18,7 @@ using namespace chess;
 #endif
 
 extern uint64_t nodes;
-#define MAX_DEPTH 127
+#define MAX_DEPTH 96 //can't be as high as 127! otherwise we can get infinite-looped!
 
 typedef struct {
     int8_t ply;
