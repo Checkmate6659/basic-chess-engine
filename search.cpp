@@ -81,7 +81,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     Move tt_move = Move::NO_MOVE; //tt miss => it will stay like this
 
     HASHE* phashe = ProbeHash(board, ss->ply);
-    if (phashe != nullptr) //we have a hit
+    if (phashe != nullptr /* && board.halfMoveClock() <= 60 */) //we have a hit
     {
         //entry has enough depth
         if (phashe->depth >= depth && ss->ply > 1) {
