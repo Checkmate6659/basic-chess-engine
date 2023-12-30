@@ -112,7 +112,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         return DRAW;
 
     //score moves
-    score_moves(board, moves, tt_move, killers[depth]); //TODO: when implementing TT, put the move HERE!
+    score_moves(board, moves, tt_move, killers[depth]);
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
     for (int i = 0; i < moves.size(); i++) {

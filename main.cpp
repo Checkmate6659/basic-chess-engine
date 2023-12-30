@@ -40,16 +40,9 @@ int main()
             else
             {
                 std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";
-                //TODO: if there are options, add them HERE!
+                //options
                 std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
-    /*             Example:
-        Here are 5 strings for each of the 5 possible types of options
-        "option name Nullmove type check default true\n"
-        "option name Selectivity type spin default 2 min 0 max 4\n"
-        "option name Style type combo default Normal var Solid var Normal var Risky\n"
-        "option name NalimovPath type string default c:\\n"
-        "option name Clear Hash type button\n"
-    */      
+                //uciok
                 std::cout << "uciok\n";
             }
             break;
@@ -59,20 +52,6 @@ int main()
             case 'q': //quit
             return 0;
             case 's': //setoption
-/* * setoption name  [value ]
-	this is sent to the engine when the user wants to change the internal parameters
-	of the engine. For the "button" type no value is needed.
-	One string will be sent for each parameter and this will only be sent when the engine is waiting.
-	The name of the option in  should not be case sensitive and can inludes spaces like also the value.
-	The substrings "value" and "name" should be avoided in  and  to allow unambiguous parsing,
-	for example do not use  = "draw value".
-	Here are some strings for the example below:
-	   "setoption name Nullmove value true\n"
-      "setoption name Selectivity value 3\n"
-	   "setoption name Style value Risky\n"
-	   "setoption name Clear Hash\n"
-	   "setoption name NalimovPath value c:\chess\tb\4;c:\chess\tb\5\n"
- */
             input_stream >> command; //"name"
             input_stream >> command; //option name
             if (command[0] == 'H')
