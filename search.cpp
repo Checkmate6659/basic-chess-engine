@@ -164,7 +164,11 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
     clock_t start_time = clock();
-    search_end_time = start_time + alloc_time_ms * CLOCKS_PER_SEC / 1000;
+    clock_t alloc_time_clk = alloc_time_ms * CLOCKS_PER_SEC / 1000;
+    search_end_time = start_time + alloc_time_clk;
+
+    if (depth != MAX_DEPTH) //"go depth ..." command
+        search_end_time = (uint64_t)((clock_t)(-1)) >> 1; //maximum value of a clock_t
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag
