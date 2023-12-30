@@ -169,7 +169,12 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     if (depth != MAX_DEPTH) //"go depth ..." command
         search_end_time = (uint64_t)((clock_t)(-1)) >> 1; //maximum value of a clock_t
 
-    //clear_killers();
+    //shift killers by 2 ply (expecting chess game conditions)
+    for (int i = 0; i < MAX_DEPTH - 2; i++)
+    {
+        killers[i][0] = killers[i + 2][0];
+        killers[i][1] = killers[i + 2][1];
+    }
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag
