@@ -173,19 +173,24 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     nodes = 0; //reset node count
     panic = false; //reset panic flag
 
+    Move best_move = Move::NO_MOVE; //no move
     Movelist moves;
     movegen::legalmoves(moves, board);
-    Move best_move = moves[0]; //default move
+    score_moves(board, moves, best_move, killers[0]); //tt move & killer is useless here
+    best_move = moves[0]; //default move (panic; hopefully not used)
 
     int8_t cur_depth = 0; //starting depth - 1 (may need to be increased)
 
+    Value old_best = -INT32_MAX; //last finished iteration score, for partial search result
     while (++cur_depth <= depth && !panic)
     {
         //iterate over all legal moves, try find the best one
         Value best_score = -INT32_MAX; //lower than EVERYTHING (even than value of -infinity)
         Move cur_best_move = best_move;
-        SearchStack ss = { 1 }; //dont inc and dec it every time in search_root's loop
+        SearchStack ss = { 1 }; //dont inc and dec ply every time in search_root's loop
         for (int i = 0; i < moves.size(); i++) {
+            if (cur_depth == 1) //first time: sort moves
+                pick_move(moves, i);
             const auto move = moves[i];
 
             nodes++;
@@ -199,20 +204,21 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
 
             board.unmakeMove(move);
 
-            if (cur_score > best_score) //new best move
+            if (cur_score > best_score && !panic) //new best move AND not bogus
             {
                 cur_best_move = move;
                 best_score = cur_score;
             }
         }
-        //TODO: partial search results
-        if (!panic) best_move = cur_best_move;
 
-        if (!panic) //fix bogus best_score (has to change with partial search results)
+        if (!panic || best_score >= old_best) //normal OR partial search results
         {
+            best_move = cur_best_move; //update best move
+            old_best = best_score; //update best score
+
             //print out all the juicy info
             uint32_t curtime = (clock() - start_time) * 1000 / CLOCKS_PER_SEC;
-            std::cout << "info depth " << (int)cur_depth << " score cp " << best_score <<
+            std::cout << "info depth " << (int)cur_depth << " score cp " << old_best <<
                 " nodes " << nodes << " time " << curtime <<
                 " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
             std::cout << uci::moveToUci(best_move) << " "; //print best move (not in TT)
@@ -223,7 +229,8 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             //extract PV from TT
             U64 hash = pv_board.hash();
             HASHE *phashe = ProbeHash(pv_board, 0);
-            while (phashe != nullptr)
+            //sometimes TT entries don't have a move; also have a counter in case of repetition
+            for (int i = 0; phashe != nullptr && phashe->best && i < MAX_DEPTH; i++)
             {
                 Move pv_move = phashe->best;
                 std::cout << uci::moveToUci(pv_move) << " "; //print pv move
