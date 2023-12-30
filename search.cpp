@@ -1,9 +1,4 @@
-#include <cstdint>
-#include <ctime>
-#include <termios.h>
-#include "chess.hpp"
 #include "search.hpp"
-#include "eval.hpp"
 #include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
 #include "tt.hpp"
@@ -14,10 +9,15 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-//clear hash table AND killers
-void clear_hash()
+//clear killer move table
+void clear_killers()
 {
     for (int i = 0; i < MAX_DEPTH; i++) killers[i][0] = killers[i][1] = Move::NO_MOVE;
+}
+
+//clear hash table
+void clear_hash()
+{
     for (int i = 0; i < hash_size; i++) hash_table[i] = {};
 }
 
@@ -104,7 +104,6 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
 
     Movelist moves;
     movegen::legalmoves(moves, board);
-    //if (tt_move.move() && moves.find(tt_move) == -1) std::cout << "RED ALERT\n";
 
     if (moves.size() == 0) //no legal moves
         return board.inCheck() ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
@@ -169,6 +168,8 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
 
     if (depth != MAX_DEPTH) //"go depth ..." command
         search_end_time = (uint64_t)((clock_t)(-1)) >> 1; //maximum value of a clock_t
+
+    //clear_killers();
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag

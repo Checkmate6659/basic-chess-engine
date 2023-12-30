@@ -4,7 +4,8 @@
 //#define __NOISY_DRAW //add a bit of noise to draw score to avoid repetition
 
 #include <iostream>
-#include <stdint.h>
+#include <cstdint>
+#include <ctime>
 
 #include "chess.hpp"
 #include "eval.hpp"
