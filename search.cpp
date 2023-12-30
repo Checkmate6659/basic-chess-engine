@@ -215,7 +215,23 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             std::cout << "info depth " << (int)cur_depth << " score cp " << best_score <<
                 " nodes " << nodes << " time " << curtime <<
                 " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
-            std::cout << uci::moveToUci(best_move) << std::endl; //for now only print the best move as PV
+            std::cout << uci::moveToUci(best_move) << " "; //print best move (not in TT)
+
+            Board pv_board(board.getFen()); //copy board to avoid destroying it
+            pv_board.makeMove(best_move); //make best move
+
+            //extract PV from TT
+            U64 hash = pv_board.hash();
+            HASHE *phashe = ProbeHash(pv_board, 0);
+            while (phashe != nullptr)
+            {
+                Move pv_move = phashe->best;
+                std::cout << uci::moveToUci(pv_move) << " "; //print pv move
+                pv_board.makeMove(pv_move); //push the move
+                phashe = ProbeHash(pv_board, 0); //next tt entry
+            }
+
+            std::cout << std::endl; //print newline
         }
     }
 
