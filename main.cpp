@@ -21,7 +21,6 @@ int main()
         std::cerr << "Cannot allocate 16MB hash table\n";
         return 1;
     }
-    clear_hash();
     Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     //UCI loop
@@ -35,16 +34,60 @@ int main()
 
         switch (command[0])
         {
-            case 'u': //uci (ucinewgame is here too; don't care)
-            std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";
-            //TODO: if there are options, add them HERE!
-            std::cout << "uciok\n";
+            case 'u': //uci & ucinewgame
+            if (command.length() > 7) //for ucinewgame
+                clear_hash(); //time-consuming: don't do it for UCI
+            else
+            {
+                std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";
+                //TODO: if there are options, add them HERE!
+                std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
+    /*             Example:
+        Here are 5 strings for each of the 5 possible types of options
+        "option name Nullmove type check default true\n"
+        "option name Selectivity type spin default 2 min 0 max 4\n"
+        "option name Style type combo default Normal var Solid var Normal var Risky\n"
+        "option name NalimovPath type string default c:\\n"
+        "option name Clear Hash type button\n"
+    */      
+                std::cout << "uciok\n";
+            }
             break;
             case 'i': //isready
             std::cout << "readyok\n";
             break;
             case 'q': //quit
             return 0;
+            case 's': //setoption
+/* * setoption name  [value ]
+	this is sent to the engine when the user wants to change the internal parameters
+	of the engine. For the "button" type no value is needed.
+	One string will be sent for each parameter and this will only be sent when the engine is waiting.
+	The name of the option in  should not be case sensitive and can inludes spaces like also the value.
+	The substrings "value" and "name" should be avoided in  and  to allow unambiguous parsing,
+	for example do not use  = "draw value".
+	Here are some strings for the example below:
+	   "setoption name Nullmove value true\n"
+      "setoption name Selectivity value 3\n"
+	   "setoption name Style value Risky\n"
+	   "setoption name Clear Hash\n"
+	   "setoption name NalimovPath value c:\chess\tb\4;c:\chess\tb\5\n"
+ */
+            input_stream >> command; //"name"
+            input_stream >> command; //option name
+            if (command[0] == 'H')
+            {
+                input_stream >> command; //"value"
+                input_stream >> command; //size in mb
+                uint32_t size_mb = std::stoi(command);
+                if (!alloc_hash(size_mb)) //allocate
+                {
+                    //allocation failed
+                    std::cerr << "Cannot allocate " << size_mb << "MB hash table\n";
+                    return 1;
+                }
+            }
+            break;
             case 'p': //position
             input_stream >> command; //get new word
             if (command[0] == 's') //position startpos ...
