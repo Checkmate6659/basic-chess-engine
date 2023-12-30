@@ -153,6 +153,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     }
     if (!panic && alpha != PANIC_VALUE && alpha != -PANIC_VALUE)
     {
+        //Storing tt_move instead of best_move when failing low makes like 0 change
         uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
         RecordHash(board, depth, alpha, hashf, best_move, ss->ply);
     }
