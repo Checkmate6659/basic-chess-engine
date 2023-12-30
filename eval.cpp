@@ -166,10 +166,10 @@ void init_tables()
 {
     for (int pc = (int)Piece::WHITEPAWN; pc <= (int)Piece::WHITEKING; pc++) {
         for (int sq = 0; sq < 64; sq++) {
-            mg_table[pc]  [sq] = mg_value[pc] + mg_pesto_table[pc][sq];
-            eg_table[pc]  [sq] = eg_value[pc] + eg_pesto_table[pc][sq];
-            mg_table[pc+6][sq] = mg_value[pc] + mg_pesto_table[pc][sq ^ 56];
-            eg_table[pc+6][sq] = eg_value[pc] + eg_pesto_table[pc][sq ^ 56];
+            mg_table[pc]  [sq] = mg_value[pc] + mg_pesto_table[pc][sq ^ 56];
+            eg_table[pc]  [sq] = eg_value[pc] + eg_pesto_table[pc][sq ^ 56];
+            mg_table[pc+6][sq] = mg_value[pc] + mg_pesto_table[pc][sq];
+            eg_table[pc+6][sq] = eg_value[pc] + eg_pesto_table[pc][sq];
         }
     }
 }
