@@ -16,6 +16,11 @@ using namespace chess;
 int main()
 {
     init_tables();
+    if(!alloc_hash(16)) //create 16MB TT
+    {
+        std::cerr << "Cannot allocate 16MB hash table\n";
+        return 1;
+    }
     clear_hash();
     Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 

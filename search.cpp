@@ -18,7 +18,7 @@ Move killers[MAX_DEPTH][2];
 void clear_hash()
 {
     for (int i = 0; i < MAX_DEPTH; i++) killers[i][0] = killers[i][1] = Move::NO_MOVE;
-    for (int i = 0; i < HASH_SIZE; i++) hash_table[i] = {};
+    for (int i = 0; i < hash_size; i++) hash_table[i] = {};
 }
 
 Value quiesce(Board &board, Value alpha, Value beta)
@@ -165,8 +165,6 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     //convert from ms to clock ticks; set this up for panic return
     clock_t start_time = clock();
     search_end_time = start_time + alloc_time_ms * CLOCKS_PER_SEC / 1000;
-
-    //clear_hash(); //TEMPORARY! i want persistent TT in the end!
 
     nodes = 0; //reset node count
     panic = false; //reset panic flag

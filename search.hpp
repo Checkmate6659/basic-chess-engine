@@ -24,6 +24,7 @@ typedef struct {
     int8_t ply;
 } SearchStack;
 
+bool alloc_hash(uint32_t size_mb); //repeating alloc_hash prototype here, to use in main
 void clear_hash(); //WARNING: this costs a lot of time, as it clears the entire TT!
 
 Value quiesce(Board &board, Value alpha, Value beta, SearchStack* ss);

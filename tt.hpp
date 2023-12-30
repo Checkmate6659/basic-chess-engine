@@ -2,6 +2,7 @@
 #ifndef TT_H
 #define TT_H
 
+#include <cstdlib>
 #include <stdint.h>
 #include "chess.hpp"
 typedef uint64_t U64;
@@ -20,14 +21,29 @@ typedef struct
     uint16_t best;
 } HASHE;
 
-#define HASH_SIZE (1<<20) //constant for now (TODO: make it an option!)
-HASHE hash_table[HASH_SIZE]; //smaller hash table (I was using 2^24 before! that's 400MB!)
+uint32_t hash_size;
+HASHE* hash_table; //smaller hash table (I was using 2^24 before! that's 400MB!)
+
+//Allocate hash table (size_mb is size of hash table in mb)
+//Returns true if allocation succeeded, false if it failed
+bool alloc_hash(uint32_t size_mb)
+{
+    size_mb *= 1000000 / sizeof(HASHE); //now size_mb is number of elements
+    free(hash_table);
+    hash_table = (HASHE*)malloc(size_mb * sizeof(HASHE));
+    if (hash_table != NULL) //check for success
+    {
+        hash_size = size_mb; //this has to be the number of elements
+        return true;
+    }
+    return false; //failure: return false
+}
 
 //look at https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/tt/tt_probe.c
 HASHE* ProbeHash(Board &board, int8_t ply)
 {
     U64 curhash = board.hash();
-    HASHE* phashe = &hash_table[curhash % HASH_SIZE];
+    HASHE* phashe = &hash_table[curhash % hash_size];
 
     if (phashe->key == curhash) //hit
     {
@@ -66,7 +82,7 @@ void RecordHash(Board &board, int8_t depth, int32_t val, uint8_t flags, const Mo
     }
 
     U64 curhash = board.hash();
-    HASHE* phashe = &hash_table[curhash % HASH_SIZE];
+    HASHE* phashe = &hash_table[curhash % hash_size];
 
     phashe->key = curhash;
     phashe->best = best_move.move();
