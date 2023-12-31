@@ -69,6 +69,9 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
             return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
         }
 
+    //are we in a PV-node?
+    bool pv_node = (beta - alpha > 1);
+
     if (depth == 0)
         return quiesce(board, alpha, beta);
 
@@ -121,7 +124,25 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         board.makeMove(move);
         nodes++; //1 move made = 1 node
         ss->ply++;
-        Value cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+
+        Value cur_score;
+        //basic PVS
+        //TODO: test if we exclude nodes with alpha TT flag or a TT miss
+        if (i == 0 || true) //(replace condition by move == tt_move)
+        {
+            cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+        }
+        else //not first move
+        {
+            //zws
+            cur_score = -search(board, depth - 1, -alpha - 1, -alpha, ss);
+
+            if (cur_score > alpha && cur_score < beta) //beat alpha: re-search
+            {
+                cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+            }
+        }
+
         ss->ply--;
         board.unmakeMove(move);
 
