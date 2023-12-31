@@ -5,8 +5,6 @@
 #include <cstdint>
 using namespace chess;
 
-#define KILLERS
-
 //Give a score to all the moves (don't order them immediately!)
 inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_killers)
 {
@@ -15,26 +13,33 @@ inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
 
-        if (moves[i] == tt_move)
+        if (moves[i] == tt_move) //TT MOVE!!!
             moves[i].setScore(0x7FFF); //highest score
-        //TODO: score promotions!
+        //score promotions! (no library function for that tho); only up queen promos a lot
+        else if (
+            moves[i].promotionType() == PieceType::QUEEN //promotes to a queen (might be enough by itself?)
+            && board.at<PieceType>(moves[i].from()) == PieceType::PAWN //moved a pawn
+            && moves[i].to().rank() % 7 == 0) //to a back rank
+        {
+            //like MVV-LVA really
+            PieceType victim = board.at<PieceType>(moves[i].to());
+            moves[i].setScore(0x7FF8 + (int)victim); //really high score!
+        }
         else if (board.isCapture(moves[i]))
         {
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
-            moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
+            moves[i].setScore(0x7810 + (int)victim * 16 - (int)aggressor);
         }
-#ifdef KILLERS
         else if (move == cur_killers[0])
         {
-            moves[i].setScore(0x4001);
+            moves[i].setScore(0x7801);
         }
         else if (move == cur_killers[1])
         {
-            moves[i].setScore(0x4000);
+            moves[i].setScore(0x7800);
         }
-#endif
         else
         {
             moves[i].setScore(-32000);
@@ -63,6 +68,7 @@ inline void score_moves_quiesce(Board &board, Movelist &moves)
 }
 
 //swap moves[i] with the best scored move after i
+//TODO: look at Movelist.sort(int index = 0)
 inline void pick_move(Movelist &moves, int i)
 {
     Move moves_i = moves[i];
