@@ -36,7 +36,10 @@ int main()
         {
             case 'u': //uci & ucinewgame
             if (command.length() > 7) //for ucinewgame
+            {
                 clear_hash(); //time-consuming: don't do it for UCI
+                clear_small_tables();
+            }
             else
             {
                 std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";

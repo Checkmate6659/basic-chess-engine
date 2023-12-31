@@ -10,7 +10,7 @@ bool panic = false;
 Move killers[MAX_DEPTH][2];
 
 //clear killer move table
-void clear_killers()
+void clear_small_tables()
 {
     for (int i = 0; i < MAX_DEPTH; i++) killers[i][0] = killers[i][1] = Move::NO_MOVE;
 }
@@ -69,8 +69,8 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
             return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
         }
 
-    //are we in a PV-node?
-    bool pv_node = (beta - alpha > 1);
+    //are we in a PV-node? (useless for now)
+    //bool pv_node = (beta - alpha > 1);
 
     if (depth == 0)
         return quiesce(board, alpha, beta);
@@ -126,7 +126,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         ss->ply++;
 
         Value cur_score;
-        //basic PVS
+        //basic PVS (DISABLED FOR NOW)
         //TODO: test if we exclude nodes with alpha TT flag or a TT miss
         if (i == 0 || true) //(replace condition by move == tt_move)
         {
