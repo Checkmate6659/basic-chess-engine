@@ -9,10 +9,16 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-//clear killer move table
+//clear killer move table and history
 void clear_small_tables()
 {
+    //reset killers
     for (int i = 0; i < MAX_DEPTH; i++) killers[i][0] = killers[i][1] = Move::NO_MOVE;
+
+    //reset histories to 0 (note: starting value can be adjusted to minimize clampings)
+    for (int i = 0; i < 12; i++)
+        for (int j = 0; j < 64; j++)
+            hist[i][j] = 0;
 }
 
 //clear hash table
@@ -154,6 +160,12 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
             alpha = cur_score;
             best_move = move; //update best move
 
+            if (!board.isCapture(move))
+            {
+                //boost history
+                boost_hist(board.at<Piece>(move.from()), move.to(), depth);
+            }
+
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
                 //killer move update: quiet move; avoid duplicate killers
@@ -168,6 +180,14 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
                 //why does fail soft give really bad results?
                 RecordHash(board, depth, beta, hashfBETA, move, ss->ply);
                 return cur_score; //fail soft here: no effect!
+            }
+        }
+        else //failed low: bad move!
+        {
+            if (!board.isCapture(move))
+            {
+                //penalize history
+                penal_hist(board.at<Piece>(move.from()), move.to(), depth);
             }
         }
     }
