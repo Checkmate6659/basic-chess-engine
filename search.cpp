@@ -65,7 +65,7 @@ Value quiesce(Board &board, Value alpha, Value beta)
     return alpha;
 }
 
-Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
+Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack* ss)
 {
     if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
         if (panic || clock() > search_end_time ||
@@ -84,6 +84,9 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     //check repetition BEFORE probing (no worry about priority for repetition!!!)
     if (board.isRepetition(1))
         return DRAW;
+
+    //original depth is const; to keep original depth value
+    int new_depth = depth;
 
     //probe hash table
     //https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/engine/search_bestmove.c
@@ -110,6 +113,14 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         //this is executed even when we can't return from search immediately
         tt_move = Move(phashe->best); //write best move out of there
     }
+    else //TT miss
+    {
+        //IIR (reducing by 1)
+        /* if (new_depth >= 3 && pv_node)
+        {
+            new_depth -= 1;
+        } */
+    }
 
     Movelist moves;
     movegen::legalmoves(moves, board);
@@ -120,7 +131,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         return DRAW;
 
     //score moves
-    score_moves(board, moves, tt_move, killers[depth]);
+    score_moves(board, moves, tt_move, killers[ss->ply]);
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
     for (int i = 0; i < moves.size(); i++) {
@@ -132,20 +143,20 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
         ss->ply++;
 
         Value cur_score;
-        //basic PVS (DISABLED FOR NOW)
-        //TODO: test if we exclude nodes with alpha TT flag or a TT miss
-        if (i == 0 || true) //(replace condition by move == tt_move)
+        //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
+        if (i == 0 || true) //PVS DISABLED
+        //if (alpha < 256 - INT32_MAX || move == tt_move) //mate score warning! (???)
         {
-            cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+            cur_score = -search(board, new_depth - 1, -beta, -alpha, ss);
         }
         else //not first move
         {
             //zws
-            cur_score = -search(board, depth - 1, -alpha - 1, -alpha, ss);
+            cur_score = -search(board, new_depth - 1, -alpha - 1, -alpha, ss);
 
             if (cur_score > alpha && cur_score < beta) //beat alpha: re-search
             {
-                cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+                cur_score = -search(board, new_depth - 1, -beta, -alpha, ss);
             }
         }
 
@@ -163,22 +174,22 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
             if (!board.isCapture(move))
             {
                 //boost history
-                boost_hist(board.at<Piece>(move.from()), move.to(), depth);
+                boost_hist(board.at<Piece>(move.from()), move.to(), new_depth);
             }
 
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
                 //killer move update: quiet move; avoid duplicate killers
                 //(TODO: test if better or worse)
-                if (!board.isCapture(move) && move != killers[depth][0])
+                if (!board.isCapture(move) && move != killers[ss->ply][0])
                 {
-                    killers[depth][1] = killers[depth][0];
-                    killers[depth][0] = move;
+                    killers[ss->ply][1] = killers[ss->ply][0];
+                    killers[ss->ply][0] = move;
                 }
 
                 //store in hash table (beta = lower bound flag)
                 //why does fail soft give really bad results?
-                RecordHash(board, depth, beta, hashfBETA, move, ss->ply);
+                RecordHash(board, new_depth, beta, hashfBETA, move, ss->ply);
                 return cur_score; //fail soft here: no effect!
             }
         }
@@ -187,7 +198,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
             if (!board.isCapture(move))
             {
                 //penalize history
-                penal_hist(board.at<Piece>(move.from()), move.to(), depth);
+                penal_hist(board.at<Piece>(move.from()), move.to(), new_depth);
             }
         }
     }
@@ -195,7 +206,7 @@ Value search(Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
     {
         //Storing tt_move instead of best_move when failing low makes like 0 change
         uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
-        RecordHash(board, depth, alpha, hashf, best_move, ss->ply);
+        RecordHash(board, new_depth, alpha, hashf, best_move, ss->ply);
     }
     return alpha;
 }
